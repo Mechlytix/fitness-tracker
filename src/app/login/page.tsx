@@ -2,29 +2,53 @@
 export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Zap, Mail, Loader2 } from 'lucide-react'
+import { Zap, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSignUp, setIsSignUp] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const router = useRouter()
   const supabase = createClient()
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleAuth(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-    })
-    setLoading(false)
-    if (error) {
-      setError(error.message)
+    setMessage('')
+
+    if (isSignUp) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      })
+      setLoading(false)
+      if (error) {
+        setError(error.message)
+      } else if (data?.session) {
+        router.push('/')
+        router.refresh()
+      } else {
+        setMessage('Check your email for the confirmation link.')
+      }
     } else {
-      setSent(true)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      setLoading(false)
+      if (error) {
+        setError(error.message)
+      } else if (data?.session) {
+        router.push('/')
+        router.refresh()
+      }
     }
   }
 
@@ -51,63 +75,81 @@ export default function LoginPage() {
 
       {/* Card */}
       <div className="card-elevated" style={{ width: '100%', maxWidth: '380px' }}>
-        {sent ? (
-          <div style={{ textAlign: 'center', padding: '16px 0' }}>
-            <div style={{
-              width: 56, height: 56, background: 'var(--green-dim)',
-              borderRadius: '50%', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', margin: '0 auto 16px'
-            }}>
-              <Mail size={24} color="var(--green)" />
-            </div>
-            <h2 style={{ marginBottom: '8px' }}>Check your email</h2>
-            <p className="text-secondary" style={{ fontSize: '0.875rem', lineHeight: 1.6 }}>
-              We sent a magic link to <strong style={{ color: 'var(--text-primary)' }}>{email}</strong>.
-              Click it to sign in — no password needed.
-            </p>
+        <h2 style={{ marginBottom: '6px', fontSize: '1.25rem' }}>{isSignUp ? 'Create an account' : 'Sign in'}</h2>
+        <p className="text-secondary" style={{ fontSize: '0.875rem', marginBottom: '24px' }}>
+          {isSignUp ? 'Sign up with your email and password' : 'Enter your email and password'}
+        </p>
+
+        {error && (
+          <div className="alert alert-error" style={{ marginBottom: '16px' }}>
+            {error}
           </div>
-        ) : (
-          <>
-            <h2 style={{ marginBottom: '6px', fontSize: '1.25rem' }}>Sign in</h2>
-            <p className="text-secondary" style={{ fontSize: '0.875rem', marginBottom: '24px' }}>
-              We'll email you a magic link
-            </p>
-
-            {error && (
-              <div className="alert alert-error" style={{ marginBottom: '16px' }}>
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleLogin}>
-              <div className="input-group">
-                <label className="input-label" htmlFor="email">Email address</label>
-                <input
-                  id="email"
-                  type="email"
-                  className="input"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="btn btn-primary btn-full btn-lg"
-                disabled={loading || !email}
-              >
-                {loading ? (
-                  <><Loader2 size={16} className="animate-spin" /> Sending…</>
-                ) : (
-                  <>Send magic link</>
-                )}
-              </button>
-            </form>
-          </>
         )}
+        
+        {message && (
+          <div className="alert alert-success" style={{ marginBottom: '16px', background: 'var(--green-dim)', color: 'var(--green)', padding: '12px', borderRadius: 'var(--radius-md)' }}>
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={handleAuth}>
+          <div className="input-group">
+            <label className="input-label" htmlFor="email">Email address</label>
+            <input
+              id="email"
+              type="email"
+              className="input"
+              placeholder="you@example.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+          </div>
+
+          <div className="input-group">
+            <label className="input-label" htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              className="input"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+              autoComplete={isSignUp ? "new-password" : "current-password"}
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-full btn-lg"
+            disabled={loading || !email || !password}
+          >
+            {loading ? (
+              <><Loader2 size={16} className="animate-spin" /> {isSignUp ? 'Signing up...' : 'Signing in...'}</>
+            ) : (
+              <>{isSignUp ? 'Sign up' : 'Sign in'}</>
+            )}
+          </button>
+        </form>
+
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={() => {
+              setIsSignUp(!isSignUp)
+              setError('')
+              setMessage('')
+            }}
+            style={{
+              background: 'none', border: 'none', color: 'var(--accent)',
+              cursor: 'pointer', fontSize: '0.875rem', textDecoration: 'underline'
+            }}
+          >
+            {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
+          </button>
+        </div>
       </div>
     </div>
   )
