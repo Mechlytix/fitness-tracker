@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { TopHeader } from '@/components/layout/TopHeader'
+import { DesktopSidebar } from '@/components/layout/DesktopSidebar'
 
 export const metadata: Metadata = {
   title: 'FitTrack — Personal Fitness',
@@ -22,12 +23,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="app-shell">
           <TopHeader />
-          <main className="page-content">
-            {children}
-          </main>
+          <div className="app-body">
+            <DesktopSidebar />
+            <main className="page-content">
+              {children}
+            </main>
+          </div>
           <BottomNav />
         </div>
       </body>
     </html>
   )
 }
+
