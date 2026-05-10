@@ -1,65 +1,168 @@
-import Image from "next/image";
+import { Dumbbell, Scale, Utensils, TrendingUp, Calendar, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 
-export default function Home() {
+export default function DashboardPage() {
+  const today = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  })
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div>
+      {/* Greeting */}
+      <div style={{ marginBottom: '24px' }}>
+        <p className="text-secondary text-sm" style={{ marginBottom: '4px' }}>{today}</p>
+        <h1 style={{ fontSize: '1.5rem', marginBottom: '4px' }}>Good evening 👋</h1>
+        <p className="text-secondary">Ready to train?</p>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="stat-grid">
+        <div className="stat-tile">
+          <div className="stat-label">This Week</div>
+          <div className="stat-value">—</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>workouts</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-label">Body Weight</div>
+          <div className="stat-value">—</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>kg</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-label">Calories Today</div>
+          <div className="stat-value">—</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>kcal</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-label">Protein Today</div>
+          <div className="stat-value">—</div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>g</div>
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="section-header">
+        <h2 className="section-title">Quick Actions</h2>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
+        <Link href="/workouts/new" style={{ textDecoration: 'none' }}>
+          <div className="card" style={{
+            display: 'flex', alignItems: 'center', gap: '16px',
+            background: 'linear-gradient(135deg, rgba(108,99,255,0.15), rgba(108,99,255,0.05))',
+            borderColor: 'rgba(108,99,255,0.3)',
+            cursor: 'pointer'
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 'var(--radius-md)',
+              background: 'var(--accent)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', flexShrink: 0
+            }}>
+              <Dumbbell size={22} color="#fff" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+                Start Workout
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Log a new session
+              </div>
+            </div>
+            <ArrowRight size={16} color="var(--text-muted)" />
+          </div>
+        </Link>
+
+        <Link href="/body" style={{ textDecoration: 'none' }}>
+          <div className="card" style={{
+            display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer'
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 'var(--radius-md)',
+              background: 'var(--green-dim)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', flexShrink: 0
+            }}>
+              <Scale size={22} color="var(--green)" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+                Body Measurements
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Weight, fat %, muscle mass
+              </div>
+            </div>
+            <ArrowRight size={16} color="var(--text-muted)" />
+          </div>
+        </Link>
+
+        <Link href="/nutrition" style={{ textDecoration: 'none' }}>
+          <div className="card" style={{
+            display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer'
+          }}>
+            <div style={{
+              width: 48, height: 48, borderRadius: 'var(--radius-md)',
+              background: 'var(--amber-dim)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', flexShrink: 0
+            }}>
+              <Utensils size={22} color="var(--amber)" />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+                Log Food
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                Track macros and calories
+              </div>
+            </div>
+            <ArrowRight size={16} color="var(--text-muted)" />
+          </div>
+        </Link>
+      </div>
+
+      {/* Recent Workouts placeholder */}
+      <div className="section-header">
+        <h2 className="section-title">Recent Workouts</h2>
+        <Link href="/workouts" className="btn btn-ghost btn-sm">See all</Link>
+      </div>
+
+      <div className="card">
+        <div className="empty-state" style={{ padding: '32px 16px' }}>
+          <div className="empty-icon">
+            <Calendar size={24} />
+          </div>
+          <p className="empty-title">No workouts yet</p>
+          <p className="empty-desc">Import your FitNotes history or start logging workouts.</p>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Link href="/import" className="btn btn-primary btn-sm">Import FitNotes</Link>
+            <Link href="/workouts/new" className="btn btn-secondary btn-sm">New Workout</Link>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Coach Teaser */}
+      <div style={{ marginTop: '24px' }}>
+        <div className="glass-card" style={{
+          background: 'linear-gradient(135deg, rgba(108,99,255,0.08), rgba(156,107,255,0.04))',
+          borderColor: 'rgba(108,99,255,0.2)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 'var(--radius-sm)',
+              background: 'var(--accent)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <TrendingUp size={18} color="#fff" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.9rem' }}>AI Coach</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Powered by your data</div>
+            </div>
+          </div>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '14px', lineHeight: 1.6 }}>
+            Log some workouts first and your AI coach will analyse your progress, spot patterns, and suggest your next session.
           </p>
+          <Link href="/coach" className="btn btn-primary btn-sm">Open Coach</Link>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
     </div>
-  );
+  )
 }
