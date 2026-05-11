@@ -406,7 +406,7 @@ a:hover { color: var(--accent-hover); }
   left: 0;
   right: 0;
   height: var(--bottom-nav-height);
-  background: rgba(19, 22, 25, 0.95);
+  background: rgba(245, 247, 250, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid var(--border);
@@ -551,7 +551,7 @@ a:hover { color: var(--accent-hover); }
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  background: rgba(13, 15, 18, 0.9);
+  background: rgba(245, 247, 250, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border);

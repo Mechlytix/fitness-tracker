@@ -4,11 +4,12 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  ArrowLeft, Plus, Trash2, Search, Loader2, Save,
+  ArrowLeft, Plus, Trash2, Loader2, Save,
   ChevronDown, ChevronUp, GripVertical
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { GroupedExercisePicker } from '@/components/GroupedExercisePicker'
 
 type Exercise = { id: string; name: string; exercise_categories: { name: string } | null }
 
@@ -281,33 +282,12 @@ export default function NewPlanPage() {
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-handle" />
             <h3 style={{ marginBottom: '16px' }}>Choose Exercise</h3>
-            <div style={{ position: 'relative', marginBottom: '12px' }}>
-              <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-              <input ref={searchRef} className="input" placeholder="Search…" value={exSearch} onChange={e => setExSearch(e.target.value)} style={{ paddingLeft: '36px' }} />
-            </div>
-            {loadingEx ? (
-              <div style={{ textAlign: 'center', padding: '24px' }}><Loader2 size={20} className="animate-spin" color="var(--text-muted)" /></div>
-            ) : (
-              <div style={{ maxHeight: '50vh', overflowY: 'auto' }}>
-                {filteredEx.length === 0 ? (
-                  <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>No exercises found</p>
-                ) : filteredEx.map(ex => (
-                  <button key={ex.id} onClick={() => pickerDayId && addExercise(pickerDayId, ex)} style={{
-                    width: '100%', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px',
-                    background: 'none', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)', textAlign: 'left'
-                  }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'none')}
-                  >
-                    <div style={{ width: 36, height: 36, background: 'var(--accent-dim)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>💪</div>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{ex.name}</div>
-                      {ex.exercise_categories?.name && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{ex.exercise_categories.name}</div>}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+            <GroupedExercisePicker
+              exercises={allExercises}
+              loading={loadingEx}
+              onSelect={(ex) => pickerDayId && addExercise(pickerDayId, ex)}
+              searchRef={searchRef}
+            />
           </div>
         </div>
       )}
