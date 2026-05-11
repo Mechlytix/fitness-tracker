@@ -5,10 +5,12 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   Plus, Sparkles, Loader2, Target, Calendar,
-  Dumbbell, ChevronRight, Trash2, CheckCircle, Trophy
+  Dumbbell, ChevronRight, Trash2, CheckCircle, Trophy, MessageSquare, PenLine
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 type Goal = {
   id: string
@@ -61,6 +63,11 @@ export default function PlansPage() {
   const [showGenerate, setShowGenerate] = useState(false)
   const [showGoalForm, setShowGoalForm] = useState(false)
   const [genError, setGenError] = useState('')
+
+  // AI review state
+  const [reviewingPlan, setReviewingPlan] = useState(false)
+  const [reviewResult, setReviewResult] = useState('')
+  const [showReview, setShowReview] = useState(false)
 
   // Generation form
   const [genGoal, setGenGoal] = useState('hypertrophy')
@@ -183,6 +190,28 @@ export default function PlansPage() {
     loadData()
   }
 
+  async function handleCritique(planId: string) {
+    setReviewingPlan(true)
+    setReviewResult('')
+    setShowReview(true)
+    try {
+      const res = await fetch('/api/plan/critique', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planId }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setReviewResult(`**Error:** ${data.error || 'Review failed'}`)
+      } else {
+        setReviewResult(data.review)
+      }
+    } catch (err: any) {
+      setReviewResult(`**Error:** ${err.message}`)
+    }
+    setReviewingPlan(false)
+  }
+
   const activePlan = plans.find(p => p.is_active)
   const inactivePlans = plans.filter(p => !p.is_active)
   const activeGoals = goals.filter(g => !g.is_achieved)
@@ -208,9 +237,14 @@ export default function PlansPage() {
           <h1 style={{ marginBottom: '4px' }}>Plans</h1>
           <p className="text-secondary text-sm">AI-powered workout programming</p>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => setShowGenerate(true)}>
-          <Sparkles size={14} /> Generate Plan
-        </button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <Link href="/plans/new" className="btn btn-secondary btn-sm">
+            <PenLine size={14} /> Create
+          </Link>
+          <button className="btn btn-primary btn-sm" onClick={() => setShowGenerate(true)}>
+            <Sparkles size={14} /> AI Generate
+          </button>
+        </div>
       </div>
 
       {/* ─── Goals Section ─── */}
@@ -289,9 +323,14 @@ export default function PlansPage() {
         <div style={{ marginBottom: '28px' }}>
           <div className="section-header">
             <h2 className="section-title">Active Plan</h2>
-            <button className="btn btn-ghost btn-sm" style={{ color: 'var(--red)' }} onClick={() => handleDeletePlan(activePlan.id)}>
-              <Trash2 size={13} /> Remove
-            </button>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button className="btn btn-secondary btn-sm" onClick={() => handleCritique(activePlan.id)} disabled={reviewingPlan}>
+                {reviewingPlan ? <Loader2 size={13} className="animate-spin" /> : <MessageSquare size={13} />} AI Review
+              </button>
+              <button className="btn btn-ghost btn-sm" style={{ color: 'var(--red)' }} onClick={() => handleDeletePlan(activePlan.id)}>
+                <Trash2 size={13} /> Remove
+              </button>
+            </div>
           </div>
           <div className="card-elevated" style={{ marginBottom: '16px' }}>
             <div style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '4px' }}>{activePlan.name}</div>
@@ -343,11 +382,16 @@ export default function PlansPage() {
           </div>
           <p style={{ fontWeight: 600, fontSize: '1rem', marginBottom: '6px' }}>No active plan</p>
           <p style={{ fontSize: '0.8125rem', color: 'var(--text-muted)', marginBottom: '16px', maxWidth: '280px', margin: '0 auto 16px' }}>
-            Generate an AI-powered workout plan based on your goals and history.
+            Create your own plan or let the AI generate one based on your goals.
           </p>
-          <button className="btn btn-primary" onClick={() => setShowGenerate(true)}>
-            <Sparkles size={16} /> Generate Plan
-          </button>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+            <Link href="/plans/new" className="btn btn-secondary">
+              <PenLine size={16} /> Create Plan
+            </Link>
+            <button className="btn btn-primary" onClick={() => setShowGenerate(true)}>
+              <Sparkles size={16} /> AI Generate
+            </button>
+          </div>
         </div>
       )}
 
@@ -491,6 +535,34 @@ export default function PlansPage() {
             <button className="btn btn-primary btn-full btn-lg" onClick={handleAddGoal} disabled={savingGoal || !goalTitle.trim()}>
               {savingGoal ? <><Loader2 size={16} className="animate-spin" /> Saving…</> : <>Save Goal</>}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── AI Review Modal ─── */}
+      {showReview && (
+        <div className="modal-overlay" onClick={() => !reviewingPlan && setShowReview(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px' }}>
+            <div className="modal-handle" />
+            <h3 style={{ marginBottom: '16px' }}>
+              <MessageSquare size={16} style={{ display: 'inline', marginRight: '8px', color: 'var(--accent)' }} />
+              AI Plan Review
+            </h3>
+            {reviewingPlan ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <Loader2 size={28} className="animate-spin" color="var(--accent)" style={{ margin: '0 auto 12px' }} />
+                <p className="text-secondary">Analysing your plan…</p>
+              </div>
+            ) : (
+              <div className="prose prose-invert prose-sm" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{reviewResult}</ReactMarkdown>
+              </div>
+            )}
+            {!reviewingPlan && (
+              <button className="btn btn-secondary btn-full" style={{ marginTop: '16px' }} onClick={() => setShowReview(false)}>
+                Close
+              </button>
+            )}
           </div>
         </div>
       )}
