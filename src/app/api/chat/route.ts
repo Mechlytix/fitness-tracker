@@ -109,22 +109,66 @@ export async function POST(req: Request) {
     }
   }
 
-  const systemPrompt = `You are a world-class, data-driven personal fitness coach.
-Your client is asking you questions about their fitness journey, programming, and progress.
+  // Fetch profile, nutrition targets, today's food, weight trend
+  const today = new Date().toISOString().slice(0, 10)
+
+  const [profileRes, targetsRes, todayFoodRes, weightRes] = await Promise.all([
+    supabase.from('user_profile').select('*').eq('user_id', user.id).single(),
+    supabase.from('nutrition_targets').select('*').eq('user_id', user.id).single(),
+    supabase.from('food_log').select('servings, food_items(name, calories, protein_g, carbs_g, fat_g)').eq('user_id', user.id).eq('log_date', today),
+    supabase.from('weight_log').select('log_date, weight_kg').eq('user_id', user.id).order('log_date', { ascending: false }).limit(10),
+  ])
+
+  const profile = profileRes.data
+  const targets = targetsRes.data
+  const todayFood = todayFoodRes.data ?? []
+  const weights = weightRes.data ?? []
+
+  let profileSection = ''
+  if (profile) {
+    profileSection = `\n## Client Profile\n- Weight: ${profile.weight_kg ?? '?'}kg, Height: ${profile.height_cm ?? '?'}cm, Age: ${profile.age ?? '?'}, Sex: ${profile.sex ?? '?'}\n- Goal: ${profile.goal ?? 'maintain'}\n- Activity level: ${profile.activity_level ?? '1.55'}\n`
+  }
+
+  let nutritionSection = ''
+  if (targets) {
+    nutritionSection += `\n## Nutrition Targets\n- ${targets.calories} kcal | Protein: ${targets.protein_g}g | Carbs: ${targets.carbs_g}g | Fat: ${targets.fat_g}g\n`
+  }
+  if (todayFood.length > 0) {
+    const totals = todayFood.reduce((acc: any, e: any) => {
+      const fi = e.food_items as any
+      const s = e.servings
+      return { cal: acc.cal + (fi?.calories ?? 0) * s, p: acc.p + (fi?.protein_g ?? 0) * s, c: acc.c + (fi?.carbs_g ?? 0) * s, f: acc.f + (fi?.fat_g ?? 0) * s }
+    }, { cal: 0, p: 0, c: 0, f: 0 })
+    nutritionSection += `\n## Today's Food (${today})\n- Consumed: ${Math.round(totals.cal)} kcal | P: ${Math.round(totals.p)}g | C: ${Math.round(totals.c)}g | F: ${Math.round(totals.f)}g\n`
+    if (targets) {
+      nutritionSection += `- Remaining: ${Math.round(targets.calories - totals.cal)} kcal | P: ${Math.round(targets.protein_g - totals.p)}g\n`
+    }
+  }
+
+  let weightSection = ''
+  if (weights.length > 0) {
+    weightSection = `\n## Weight Trend (recent)\n` + weights.map((w: any) => `- ${w.log_date}: ${w.weight_kg}kg`).join('\n') + '\n'
+  }
+
+  const systemPrompt = `You are a world-class, data-driven personal fitness AND nutrition coach.
+Your client is asking you questions about their fitness journey, programming, nutrition, and progress.
+You have a UNIFIED view of their training, nutrition, body composition, and goals.
 
 CRITICAL RULES:
-1. ALWAYS base your advice on the user's ACTUAL logged data provided below. Never invent or assume workouts.
+1. ALWAYS base your advice on the user's ACTUAL logged data provided below. Never invent or assume data.
 2. Be concise, encouraging, and highly technical when discussing programming (volume, intensity, progressive overload).
-3. If the data doesn't contain what the user is asking about, say so clearly.
-4. Format your responses using Markdown (bold, lists, tables) for clarity.
-5. When discussing PRs, reference the exact date and numbers from the data.
-6. For programming advice, consider the user's recent volume, frequency, and progression trends.
-7. When the user has goals set, actively reference them and provide progress updates toward those goals.
-
+3. When discussing nutrition, reference their actual intake vs targets. Suggest adjustments if needed.
+4. Connect training and nutrition advice — e.g., "You're not eating enough protein to support your volume increase."
+5. Format your responses using Markdown (bold, lists, tables) for clarity.
+6. When discussing PRs, reference the exact date and numbers from the data.
+7. When the user has goals set, actively reference them and provide progress updates.
+${profileSection}
 # USER'S COMPLETE WORKOUT HISTORY
 Total sessions: ${allWorkouts?.length ?? 0}
 ${goalsSection}
 ${prSummary}
+${nutritionSection}
+${weightSection}
 ## All Sessions (newest first)
 ${workoutData}
 `

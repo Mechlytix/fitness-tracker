@@ -3,17 +3,20 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  Activity, Dumbbell, UtensilsCrossed, MessageSquare,
-  ClipboardList, Zap, TrendingUp, Upload, Settings
+  Activity, Dumbbell, UtensilsCrossed, Sparkles,
+  ClipboardList, Zap, TrendingUp, Upload, Settings, Scale
 } from 'lucide-react'
 
 const PRIMARY_NAV = [
   { href: '/',           icon: Activity,         label: 'Dashboard' },
+  { href: '/coach',      icon: Sparkles,         label: 'AI Coach' },
+  { href: '/workouts',   icon: Dumbbell,         label: 'Train' },
+  { href: '/nutrition',  icon: UtensilsCrossed,  label: 'Eat' },
+]
+
+const PLANNING_NAV = [
   { href: '/plans',      icon: ClipboardList,    label: 'Plans' },
-  { href: '/workouts',   icon: Dumbbell,         label: 'Workouts' },
-  { href: '/nutrition',  icon: UtensilsCrossed,  label: 'Nutrition' },
-  { href: '/coach',      icon: MessageSquare,    label: 'AI Coach' },
-  { href: '/body',       icon: TrendingUp,       label: 'Body' },
+  { href: '/body',       icon: Scale,            label: 'Body & Weight' },
 ]
 
 const MORE_NAV = [
@@ -51,14 +54,18 @@ export function DesktopSidebar() {
       {/* Primary Nav */}
       <div className="sidebar-section-label">Main</div>
       {PRIMARY_NAV.map(({ href, icon: Icon, label }) => (
-        <Link
-          key={href}
-          href={href}
-          className={`sidebar-nav-item ${isActive(href) ? 'active' : ''}`}
-        >
-          <span className="sidebar-nav-icon">
-            <Icon size={16} strokeWidth={2} />
-          </span>
+        <Link key={href} href={href} className={`sidebar-nav-item ${isActive(href) ? 'active' : ''}`}>
+          <span className="sidebar-nav-icon"><Icon size={16} strokeWidth={2} /></span>
+          {label}
+        </Link>
+      ))}
+
+      <div className="sidebar-divider" />
+
+      <div className="sidebar-section-label">Planning</div>
+      {PLANNING_NAV.map(({ href, icon: Icon, label }) => (
+        <Link key={href} href={href} className={`sidebar-nav-item ${isActive(href) ? 'active' : ''}`}>
+          <span className="sidebar-nav-icon"><Icon size={16} strokeWidth={2} /></span>
           {label}
         </Link>
       ))}
@@ -68,14 +75,8 @@ export function DesktopSidebar() {
       {/* More Nav */}
       <div className="sidebar-section-label">More</div>
       {MORE_NAV.map(({ href, icon: Icon, label }) => (
-        <Link
-          key={href}
-          href={href}
-          className={`sidebar-nav-item ${isActive(href) ? 'active' : ''}`}
-        >
-          <span className="sidebar-nav-icon">
-            <Icon size={16} strokeWidth={2} />
-          </span>
+        <Link key={href} href={href} className={`sidebar-nav-item ${isActive(href) ? 'active' : ''}`}>
+          <span className="sidebar-nav-icon"><Icon size={16} strokeWidth={2} /></span>
           {label}
         </Link>
       ))}
