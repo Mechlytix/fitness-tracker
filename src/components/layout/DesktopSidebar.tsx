@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Activity, Dumbbell, UtensilsCrossed, MessageSquare,
-  MoreHorizontal, Zap, TrendingUp, Upload, Settings
+  ClipboardList, Zap, TrendingUp, Upload, Settings
 } from 'lucide-react'
 
 const PRIMARY_NAV = [
   { href: '/',           icon: Activity,         label: 'Dashboard' },
+  { href: '/plans',      icon: ClipboardList,    label: 'Plans' },
   { href: '/workouts',   icon: Dumbbell,         label: 'Workouts' },
   { href: '/nutrition',  icon: UtensilsCrossed,  label: 'Nutrition' },
   { href: '/coach',      icon: MessageSquare,    label: 'AI Coach' },

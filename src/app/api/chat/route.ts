@@ -85,6 +85,30 @@ export async function POST(req: Request) {
     prSummary = `\n## Personal Records (Heaviest Weight)\n${prLines.join('\n')}\n`
   }
 
+  // Fetch user goals
+  const { data: userGoals } = await supabase
+    .from('user_goals')
+    .select('title, description, target_value, target_unit, deadline, is_achieved')
+    .eq('user_id', user.id)
+
+  let goalsSection = ''
+  if (userGoals && userGoals.length > 0) {
+    const activeGoals = userGoals.filter((g: any) => !g.is_achieved)
+    const achievedGoals = userGoals.filter((g: any) => g.is_achieved)
+    if (activeGoals.length > 0) {
+      goalsSection += `\n## Active Goals\n`
+      activeGoals.forEach((g: any) => {
+        goalsSection += `- **${g.title}**${g.target_value ? ` (Target: ${g.target_value} ${g.target_unit ?? ''})` : ''}${g.deadline ? ` by ${g.deadline}` : ''}${g.description ? `: ${g.description}` : ''}\n`
+      })
+    }
+    if (achievedGoals.length > 0) {
+      goalsSection += `\n## Achieved Goals\n`
+      achievedGoals.forEach((g: any) => {
+        goalsSection += `- ✅ ${g.title}\n`
+      })
+    }
+  }
+
   const systemPrompt = `You are a world-class, data-driven personal fitness coach.
 Your client is asking you questions about their fitness journey, programming, and progress.
 
@@ -95,9 +119,11 @@ CRITICAL RULES:
 4. Format your responses using Markdown (bold, lists, tables) for clarity.
 5. When discussing PRs, reference the exact date and numbers from the data.
 6. For programming advice, consider the user's recent volume, frequency, and progression trends.
+7. When the user has goals set, actively reference them and provide progress updates toward those goals.
 
 # USER'S COMPLETE WORKOUT HISTORY
 Total sessions: ${allWorkouts?.length ?? 0}
+${goalsSection}
 ${prSummary}
 ## All Sessions (newest first)
 ${workoutData}

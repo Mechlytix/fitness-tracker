@@ -2,14 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Dumbbell, UtensilsCrossed, Activity, MessageSquare, MoreHorizontal } from 'lucide-react'
+import { Dumbbell, UtensilsCrossed, Activity, MessageSquare, ClipboardList } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/',           icon: Activity,         label: 'Dashboard' },
+  { href: '/plans',      icon: ClipboardList,    label: 'Plans' },
   { href: '/workouts',   icon: Dumbbell,         label: 'Workouts' },
-  { href: '/nutrition',  icon: UtensilsCrossed,  label: 'Nutrition' },
   { href: '/coach',      icon: MessageSquare,    label: 'Coach' },
-  { href: '/more',       icon: MoreHorizontal,   label: 'More' },
+  { href: '/nutrition',  icon: UtensilsCrossed,  label: 'Nutrition' },
 ]
 
 export function BottomNav() {
