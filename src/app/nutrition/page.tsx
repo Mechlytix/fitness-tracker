@@ -59,6 +59,14 @@ export default function NutritionPage() {
   const [tP, setTP] = useState('')
   const [tC, setTC] = useState('')
   const [tF, setTF] = useState('')
+  // Calculator
+  const [calcWeight, setCalcWeight] = useState('')
+  const [calcHeight, setCalcHeight] = useState('')
+  const [calcAge, setCalcAge] = useState('')
+  const [calcSex, setCalcSex] = useState<'male'|'female'>('male')
+  const [calcActivity, setCalcActivity] = useState('1.55')
+  const [calcGoal, setCalcGoal] = useState<'lose'|'maintain'|'gain'>('maintain')
+  const [showCalc, setShowCalc] = useState(false)
 
   const loadDay = useCallback(async () => {
     setLoading(true)
@@ -453,20 +461,87 @@ export default function NutritionPage() {
       {/* Targets Modal */}
       {showTargets && (
         <div className="modal-overlay" onClick={() => setShowTargets(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '460px' }}>
             <div className="modal-handle" />
             <h3 style={{ marginBottom: '16px' }}>Daily Targets</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <div className="input-group"><label className="input-label">Calories</label>
-                <input type="number" className="input" value={tCal} onChange={e => setTCal(e.target.value)} /></div>
-              <div className="input-group"><label className="input-label">Protein (g)</label>
-                <input type="number" className="input" value={tP} onChange={e => setTP(e.target.value)} /></div>
-              <div className="input-group"><label className="input-label">Carbs (g)</label>
-                <input type="number" className="input" value={tC} onChange={e => setTC(e.target.value)} /></div>
-              <div className="input-group"><label className="input-label">Fat (g)</label>
-                <input type="number" className="input" value={tF} onChange={e => setTF(e.target.value)} /></div>
-            </div>
-            <button className="btn btn-primary btn-full btn-lg" style={{ marginTop: '8px' }} onClick={saveTargets}>Save Targets</button>
+
+            {!showCalc ? (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div className="input-group"><label className="input-label">Calories</label>
+                    <input type="number" className="input" value={tCal} onChange={e => setTCal(e.target.value)} /></div>
+                  <div className="input-group"><label className="input-label">Protein (g)</label>
+                    <input type="number" className="input" value={tP} onChange={e => setTP(e.target.value)} /></div>
+                  <div className="input-group"><label className="input-label">Carbs (g)</label>
+                    <input type="number" className="input" value={tC} onChange={e => setTC(e.target.value)} /></div>
+                  <div className="input-group"><label className="input-label">Fat (g)</label>
+                    <input type="number" className="input" value={tF} onChange={e => setTF(e.target.value)} /></div>
+                </div>
+                <button className="btn btn-primary btn-full btn-lg" style={{ marginTop: '8px' }} onClick={saveTargets}>Save Targets</button>
+                <button className="btn btn-ghost btn-full btn-sm" style={{ marginTop: '8px' }} onClick={() => setShowCalc(true)}>
+                  🧮 Calculate from my stats
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div className="input-group"><label className="input-label">Weight (kg)</label>
+                    <input type="number" className="input" placeholder="80" value={calcWeight} onChange={e => setCalcWeight(e.target.value)} inputMode="decimal" /></div>
+                  <div className="input-group"><label className="input-label">Height (cm)</label>
+                    <input type="number" className="input" placeholder="180" value={calcHeight} onChange={e => setCalcHeight(e.target.value)} inputMode="numeric" /></div>
+                  <div className="input-group"><label className="input-label">Age</label>
+                    <input type="number" className="input" placeholder="30" value={calcAge} onChange={e => setCalcAge(e.target.value)} inputMode="numeric" /></div>
+                  <div className="input-group"><label className="input-label">Sex</label>
+                    <select className="input" value={calcSex} onChange={e => setCalcSex(e.target.value as 'male'|'female')}>
+                      <option value="male">Male</option><option value="female">Female</option>
+                    </select></div>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Activity Level</label>
+                  <select className="input" value={calcActivity} onChange={e => setCalcActivity(e.target.value)}>
+                    <option value="1.2">Sedentary (office job)</option>
+                    <option value="1.375">Light (1-3 days/week)</option>
+                    <option value="1.55">Moderate (3-5 days/week)</option>
+                    <option value="1.725">Active (6-7 days/week)</option>
+                    <option value="1.9">Very Active (2x/day)</option>
+                  </select>
+                </div>
+                <div className="input-group">
+                  <label className="input-label">Goal</label>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    {([['lose','⬇️ Lose'],['maintain','⚖️ Maintain'],['gain','⬆️ Gain']] as const).map(([v,l]) => (
+                      <button key={v} className={`badge ${calcGoal === v ? 'badge-accent' : 'badge-muted'}`}
+                        style={{ cursor: 'pointer', border: 'none', padding: '6px 12px', fontSize: '0.8rem', flex: 1 }}
+                        onClick={() => setCalcGoal(v)}>{l}</button>
+                    ))}
+                  </div>
+                </div>
+                <button className="btn btn-primary btn-full btn-lg" onClick={() => {
+                  const w = parseFloat(calcWeight) || 80
+                  const h = parseFloat(calcHeight) || 175
+                  const a = parseFloat(calcAge) || 30
+                  const act = parseFloat(calcActivity)
+                  // Mifflin-St Jeor
+                  const bmr = calcSex === 'male'
+                    ? 10 * w + 6.25 * h - 5 * a + 5
+                    : 10 * w + 6.25 * h - 5 * a - 161
+                  let tdee = bmr * act
+                  if (calcGoal === 'lose') tdee -= 500
+                  if (calcGoal === 'gain') tdee += 300
+                  const cal = Math.round(tdee)
+                  // Macro split: protein 2g/kg, fat 25%, rest carbs
+                  const protein = Math.round(w * 2)
+                  const fat = Math.round((cal * 0.25) / 9)
+                  const carbs = Math.round((cal - protein * 4 - fat * 9) / 4)
+                  setTCal(cal.toString())
+                  setTP(protein.toString())
+                  setTC(Math.max(carbs, 50).toString())
+                  setTF(fat.toString())
+                  setShowCalc(false)
+                }}>Calculate & Apply</button>
+                <button className="btn btn-ghost btn-full btn-sm" style={{ marginTop: '6px' }} onClick={() => setShowCalc(false)}>Back to manual</button>
+              </>
+            )}
           </div>
         </div>
       )}
